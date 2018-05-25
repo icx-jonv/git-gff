@@ -1,0 +1,49 @@
+#!/bin/bash
+#blah
+
+search_pattern="\?\?"
+while [ $# -gt 0 ] ; do
+    if [ "$1" = "-m" ] ; then
+        search_pattern=".M|M."
+    elif [ "$1" = "-mw" ] ; then
+        search_pattern=".M"
+    elif [ "$1" = "-mi" ] ; then
+        search_pattern="M."
+    elif [ "$1" = "-d" ] ; then
+        search_pattern=".D|D."
+    elif [ "$1" = "-dw" ] ; then
+        search_pattern=".D"
+    elif [ "$1" = "-di" ] ; then
+        search_pattern="D."
+    elif [ "$1" = "-r" ] ; then
+        search_pattern="R."
+    elif [ "$1" = "-a" ] ; then
+        search_pattern="A."
+    elif [ "$1" = "-?" ] ; then
+        search_pattern="\?\?"
+    else
+        echo "Unknown option $1"
+        echo " -m  list all modified files"
+        echo " -mw list all modified files in the working tree"
+        echo " -mi list all modified files in the index"
+        echo " -d  list all deleted files"
+        echo " -dw list all files deleted from the working tree"
+        echo " -di list all files deleted from the index"
+        echo " -r  list all files that have been renamed in the index"
+        echo " -a  list all files that are being added"
+        echo " -?  list all unknown files (default)"
+        exit 0
+    fi
+    shift
+done
+
+basepath=$(git rev-parse --show-toplevel)
+
+while IFS= read -r -d '' file; do
+    if [[ $file =~ ^($search_pattern) ]]; then
+        file=$(echo "$file" | cut -c4-)
+        printf "%q\n" "$basepath/$file"
+    fi
+done < <(git status --porcelain -z)
+
+exit 0
